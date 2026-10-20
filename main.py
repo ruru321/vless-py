@@ -78,6 +78,16 @@ async def handle_config(request: web.Request) -> web.Response:
     
     return web.Response(text=vlessURL, headers={"Content-Type": "text/plain"})
 
+async def handle_exitip(request: web.Request) -> web.Response:
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://ifconfig.me/ip", timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                ip = (await resp.text()).strip()
+    except Exception as e:
+        ip = f"error: {e}"
+    return web.Response(text=ip, headers={"Content-Type": "text/plain"})
+
+
 async def start_server():
     httpServer = web.Application()
     @web.middleware
@@ -169,7 +179,8 @@ async def start_server():
     
     httpServer.add_routes([
         web.get('/', handle_root),
-        web.get(f'/{UUID}', handle_config)
+        web.get(f'/{UUID}', handle_config),
+        web.get(f'/{UUID}/exitip', handle_exitip)
         ])
     # web.run_app(httpServer, port=PORT)
 
